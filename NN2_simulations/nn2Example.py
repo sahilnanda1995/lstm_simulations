@@ -176,8 +176,9 @@ def retrainingNN2():
         arrXRetrain.append(volumeRetrainArr[i])
     arrXRetrain = np.array(arrXRetrain)
     arrXRetrain = arrXRetrain.reshape(-1, 3)
-    print(arrXRetrain)
+    # print(arrXRetrain)
     # model = load_model('notSkipping_nn2.h5')
+    print('nn2Retraining')
     model.fit(arrXRetrain, yLabel, epochs=64, verbose=1)
     # model.save('notSkipping_nn2.h5')
     trainYArr = []

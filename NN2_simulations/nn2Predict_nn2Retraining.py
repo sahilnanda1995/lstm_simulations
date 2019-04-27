@@ -134,7 +134,7 @@ model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
-model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
+model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
 
 # make predictions
 trainPredict = model.predict(trainX)
@@ -207,6 +207,7 @@ print(testPredict)
 print(len(testPredict))
 
 callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
+# print('callTakingProb', callTakingProb)
 
 if testPredict[0][0] > trainY[0][0]:
     actionTaken = 1
@@ -214,19 +215,11 @@ else:
     actionTaken = 0
 print('nn2_appending_inputs', trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], volume_dataset[0][0])
 nn2Example.appendLatestTradeExample(trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], volume_dataset[0][0])
-trades_count = trades_count+1
-if trades_count == 10:
-    nn2Example.retrainingNN2()
-    trades_count = 0
-
-
-# print('callTakingProb', callTakingProb)
-#testPrices = testPrices[train_size-look_back:train_size-look_back]
-print(testPrices)
+trades_count = 1
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "pred_with_nn2_retraining.csv" 
+file_name = "prediction_with_nn2_retraining.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -295,7 +288,7 @@ for i in range(105121+step, len(dataset)-10, step):
     #model.add(Dropout(0.1))
     #model.add(Dense(1))
     #model.compile(loss='mse', optimizer='adam')
-    model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
+    model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
 
     # make predictions
     trainPredict = model.predict(trainX)
