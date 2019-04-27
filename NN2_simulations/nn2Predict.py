@@ -23,8 +23,13 @@ def create_dataset(dataset, look_back=1):
 	dataX, dataY = [], []
 	for i in range(len(dataset)-look_back-1-forecastCandle):
 		a = dataset[i:(i+look_back)]
+		print('a', a)
 		dataX.append(a)
+		print('dataX', dataX)
+		print('b', dataset[i + look_back + forecastCandle, 3])
+
 		dataY.append(dataset[i + look_back + forecastCandle, 3])
+		print('dataY', dataY)
 	return np.array(dataX), np.array(dataY)
 
 # fix random seed for reproducibility
@@ -88,7 +93,7 @@ testX, testY = create_dataset(test, look_back)
 
 trainXArr = []
 for val in trainX[len(trainX)-1]:
-    trainXArr.append(val[3])
+	trainXArr.append(val[3])
 
 trainXArr = np.array(trainXArr)
 trainXArr = trainXArr[-10:]
@@ -106,7 +111,7 @@ print('trainYArr', trainYArr)
 
 testXArr = []
 for val in testX[len(testX)-1]:
-    testXArr.append(val[3])
+	testXArr.append(val[3])
 
 
 testXArr = np.array(testXArr)
@@ -134,7 +139,7 @@ model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
-model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
 
 # make predictions
 trainPredict = model.predict(trainX)
@@ -211,7 +216,7 @@ callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "prediction_with_nn2.csv" 
+file_name = "prediction_with_nn2_debugging.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -220,139 +225,139 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.show()
 step = 10
 for i in range(105121+step, len(dataset)-10, step):
-    train_size = i
-    dataset_len = len(dataset) 
-    # print(len(dataset))
-    test_size = len(dataset) - train_size + look_back
-    train, test, volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step):train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1)]
+	train_size = i
+	dataset_len = len(dataset) 
+	# print(len(dataset))
+	test_size = len(dataset) - train_size + look_back
+	train, test, volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step):train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1)]
 
-    # reshape into X=t and Y=t+1, timestep 240
-    # print(len(train))
-    # print(len(test))
-    #print(train[len(train)-20:])
-    #print(test[look_back+forecastCandle])
-    trainX, trainY = create_dataset(train, look_back)
-    testX, testY = create_dataset(test, look_back)
-    # print(len(trainX))
-    trainXArr = []
-    for val in trainX[len(trainX)-1]:
-        trainXArr.append(val[3])
+	# reshape into X=t and Y=t+1, timestep 240
+	# print(len(train))
+	# print(len(test))
+	#print(train[len(train)-20:])
+	#print(test[look_back+forecastCandle])
+	trainX, trainY = create_dataset(train, look_back)
+	testX, testY = create_dataset(test, look_back)
+	# print(len(trainX))
+	trainXArr = []
+	for val in trainX[len(trainX)-1]:
+		trainXArr.append(val[3])
 
-    trainXArr = np.array(trainXArr)
-    trainXArr = trainXArr[-10:]
-    trainXArr = trainXArr.reshape(-1,1)
-    # print(trainXArr)
-    trainXArr = scaler.inverse_transform(trainXArr)
-    print('trainXArr', trainXArr)
+	trainXArr = np.array(trainXArr)
+	trainXArr = trainXArr[-10:]
+	trainXArr = trainXArr.reshape(-1,1)
+	# print(trainXArr)
+	trainXArr = scaler.inverse_transform(trainXArr)
+	print('trainXArr', trainXArr)
 
-    trainYArr = trainY
-    trainYArr = np.array(trainYArr)
-    trainYArr = trainYArr.reshape(-1, 1)
-    trainYArr = scaler.inverse_transform(trainYArr)
-    print('trainYArr', trainYArr)
+	trainYArr = trainY
+	trainYArr = np.array(trainYArr)
+	trainYArr = trainYArr.reshape(-1, 1)
+	trainYArr = scaler.inverse_transform(trainYArr)
+	print('trainYArr', trainYArr)
 
-    testXArr = []
-    for val in testX[len(testX)-1]:
-        testXArr.append(val[3])
-
-
-    testXArr = np.array(testXArr)
-    testXArr = testXArr[-10:]
-    testXArr = testXArr.reshape(-1,1)
-    print(testXArr)
-    testXArr = scaler.inverse_transform(testXArr)
-    print('testXArr', testXArr)
-
-    testYArr = testY
-    testYArr = np.array(testYArr)
-    testYArr = testYArr.reshape(-1, 1)
-    testYArr = scaler.inverse_transform(testYArr)
-    print('testYArr', testYArr)
-
-    # reshape input to be [samples, time steps, features]
-    trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
-    testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
-
-    # create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
-    #model = Sequential()
-    #model.add(LSTM(25, input_shape=(1, look_back)))
-    #model.add(Dropout(0.1))
-    #model.add(Dense(1))
-    #model.compile(loss='mse', optimizer='adam')
-    model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
-
-    # make predictions
-    trainPredict = model.predict(trainX)
-    testPredict = model.predict(testX)
-
-    # invert predictions
-    trainPredict = scaler.inverse_transform(trainPredict)
-    trainY = scaler.inverse_transform([trainY])
-    testPredict = scaler.inverse_transform(testPredict)
-    testY = scaler.inverse_transform([testY])
-    # print('trainX', scaler.inverse_transform(trainX[len(trainX)-1]))
-    #print('trainX[first]')
-    #print('trainX[first]')
-    #print(trainX[0])
-    #print('trainX[last]')
-    #print(trainX[len(trainX)-1])
-    #print('testX[first]')
-    #print(testX[0])
-    #print('testX[last]')
-    #print(testX[len(testX) - 1])
-    # print('train len:', len(trainY))
-    print('trainY', trainY)
-    # print('test len:', len(testY))
-    # print(testY[0])
-    # print(len(testY))
-    # print(len(testPredict))
-    #print(testX[len(testX)-1])
-    #print(scaler.inverse_transform([[0.04293486]]))
-    #print(scaler.inverse_transform([[0.04352662]]))
-    #print(scaler.inverse_transform([[0.04405421]]))
-    #print(scaler.inverse_transform([[0.044367921]]))
+	testXArr = []
+	for val in testX[len(testX)-1]:
+		testXArr.append(val[3])
 
 
+	testXArr = np.array(testXArr)
+	testXArr = testXArr[-10:]
+	testXArr = testXArr.reshape(-1,1)
+	print(testXArr)
+	testXArr = scaler.inverse_transform(testXArr)
+	print('testXArr', testXArr)
 
-    # calculate root mean squared error
-    trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-    # print('Train Score: %.2f RMSE' % (trainScore))
-    testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
-    # print('Test Score: %.2f RMSE' % (testScore))
+	testYArr = testY
+	testYArr = np.array(testYArr)
+	testYArr = testYArr.reshape(-1, 1)
+	testYArr = scaler.inverse_transform(testYArr)
+	print('testYArr', testYArr)
 
-    # shift train predictions for plotting
-    trainPredictPlot = np.empty_like(dataset)
-    trainPredictPlot[:, :] = np.nan
-    trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
+	# reshape input to be [samples, time steps, features]
+	trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
+	testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
 
-    # shift test predictions for plotting
-    testPredictPlot = np.empty_like(dataset)
-    testPredictPlot[:, :] = np.nan
-    #testPredictPlot[len(trainPredict)+(look_back*2)+1:len(dataset)-1-(forecastCandle*2), :] = testPredict
+	# create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
+	#model = Sequential()
+	#model.add(LSTM(25, input_shape=(1, look_back)))
+	#model.add(Dropout(0.1))
+	#model.add(Dense(1))
+	#model.compile(loss='mse', optimizer='adam')
+	model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
 
-    arr2 = testYArr
-    print('arr2', arr2)
-    # print('volume_dataset', volume_dataset)
-    # print('test_volume_dataset', test_volume_dataset)
+	# make predictions
+	trainPredict = model.predict(trainX)
+	testPredict = model.predict(testX)
 
-    volume_dataset = volume_dataset[-21:-11]
-    # print('volume_dataset', volume_dataset)
-    
-    #entry price
-    trainY = trainY.reshape(-1, 1)
-    trainY = trainY[-1:]
-    arr2 = arr2[-1:]
-    testPredict = testPredict[-1:]
-    volume_dataset = volume_dataset[-1:]
+	# invert predictions
+	trainPredict = scaler.inverse_transform(trainPredict)
+	trainY = scaler.inverse_transform([trainY])
+	testPredict = scaler.inverse_transform(testPredict)
+	testY = scaler.inverse_transform([testY])
+	# print('trainX', scaler.inverse_transform(trainX[len(trainX)-1]))
+	#print('trainX[first]')
+	#print('trainX[first]')
+	#print(trainX[0])
+	#print('trainX[last]')
+	#print(trainX[len(trainX)-1])
+	#print('testX[first]')
+	#print(testX[0])
+	#print('testX[last]')
+	#print(testX[len(testX) - 1])
+	# print('train len:', len(trainY))
+	print('trainY', trainY)
+	# print('test len:', len(testY))
+	# print(testY[0])
+	# print(len(testY))
+	# print(len(testPredict))
+	#print(testX[len(testX)-1])
+	#print(scaler.inverse_transform([[0.04293486]]))
+	#print(scaler.inverse_transform([[0.04352662]]))
+	#print(scaler.inverse_transform([[0.04405421]]))
+	#print(scaler.inverse_transform([[0.044367921]]))
 
-    callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
-    # print('callTakingProb', callTakingProb)
+
+
+	# calculate root mean squared error
+	trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+	# print('Train Score: %.2f RMSE' % (trainScore))
+	testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+	# print('Test Score: %.2f RMSE' % (testScore))
+
+	# shift train predictions for plotting
+	trainPredictPlot = np.empty_like(dataset)
+	trainPredictPlot[:, :] = np.nan
+	trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
+
+	# shift test predictions for plotting
+	testPredictPlot = np.empty_like(dataset)
+	testPredictPlot[:, :] = np.nan
+	#testPredictPlot[len(trainPredict)+(look_back*2)+1:len(dataset)-1-(forecastCandle*2), :] = testPredict
+
+	arr2 = testYArr
+	print('arr2', arr2)
+	# print('volume_dataset', volume_dataset)
+	# print('test_volume_dataset', test_volume_dataset)
+
+	volume_dataset = volume_dataset[-21:-11]
+	# print('volume_dataset', volume_dataset)
+	
+	#entry price
+	trainY = trainY.reshape(-1, 1)
+	trainY = trainY[-1:]
+	arr2 = arr2[-1:]
+	testPredict = testPredict[-1:]
+	volume_dataset = volume_dataset[-1:]
+
+	callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
+	# print('callTakingProb', callTakingProb)
 	# export prediction and actual prices
-    df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-    #file_name = "lstm_result_5min_x_is_10_retraining2"+ str(train_size)+ ".csv" 
-    df.to_csv(file_name, sep=';', mode = 'a', index=None, header=None)
+	df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
+	#file_name = "lstm_result_5min_x_is_10_retraining2"+ str(train_size)+ ".csv" 
+	df.to_csv(file_name, sep=';', mode = 'a', index=None, header=None)
 
-    # plot the actual price, prediction in test data=red line, actual price=blue line
-    #plt.plot(testPredictPlot)
-    #plt.show()
+	# plot the actual price, prediction in test data=red line, actual price=blue line
+	#plt.plot(testPredictPlot)
+	#plt.show()
 
