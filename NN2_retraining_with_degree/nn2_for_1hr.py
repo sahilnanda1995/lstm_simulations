@@ -95,7 +95,7 @@ for i in range(0,len(entry_test_price)):
     arrY.append(y_label)
 
 
-# print('arrY', arrY)
+print('arrY', arrY)
 predProfitArr = np.array(predProfitArr)
 predProfitArr = predProfitArr.reshape(-1,1)
 predProfitArr = scaler_predProfit.fit_transform(predProfitArr)
@@ -111,7 +111,7 @@ actionArr = actionArr.reshape(-1,1)
 print(len(volumeArr))
 arrY = np.array(arrY)
 arrY = arrY.reshape(-1,18)
-# print(arrY)
+print(arrY)
 print(len(arrY))
 
 for i in range(len(predProfitArr)):
@@ -174,14 +174,52 @@ def appendLatestTradeExample(previous_price, previous_predictedPrice, actionTake
     trainYArr.append([abs(float(previous_predictedPrice - previous_price))/previous_price*100])
     actionRetrainArr.append([actionTaken])
     volumeRetrainArr.append([volume])
-    profit = float(actualPrice-previous_price)/previous_price*100
+    actualProfit = float(actualPrice-previous_price)/previous_price*100
     if actionTaken == 0:
-        profit = -profit
-    if profit >= 0.2 :
-        yLabel.append([1])
-    else:
-        yLabel.append([0])
-
+        actualProfit = -actualProfit
+    numberOfClasses = 18
+    y_label = []
+    for i in range(numberOfClasses):
+        y_label.append(0)
+    if action == 0:
+        actualProfit = -actualProfit
+    if actualProfit < -2:
+        y_label[0] = 1
+    elif actualProfit >= -2 and actualProfit < -1:
+        y_label[1] = 1
+    elif actualProfit >= -1 and actualProfit < -0.5:
+        y_label[2] = 1
+    elif actualProfit >= -0.5 and actualProfit < -0.3:
+        y_label[3] = 1
+    elif actualProfit >= -0.3 and actualProfit < -0.1:
+        y_label[4] = 1
+    elif actualProfit >= -0.1 and actualProfit < 0:
+        y_label[5] = 1
+    elif actualProfit >= 0 and actualProfit < 0.1:
+        y_label[6] = 1
+    elif actualProfit >= 0.1 and actualProfit < 0.2:
+        y_label[7] = 1
+    elif actualProfit >= 0.2 and actualProfit < 0.3:
+        y_label[8] = 1
+    elif actualProfit >= 0.3 and actualProfit < 0.4:
+        y_label[9] = 1
+    elif actualProfit >= 0.4 and actualProfit < 0.6:
+        y_label[10] = 1
+    elif actualProfit >= 0.6 and actualProfit < 0.8:
+        y_label[11] = 1
+    elif actualProfit >= 0.8 and actualProfit < 1.0:
+        y_label[12] = 1
+    elif actualProfit >= 1.0 and actualProfit < 1.5:
+        y_label[13] = 1
+    elif actualProfit >= 1.5 and actualProfit < 2.0:
+        y_label[14] = 1
+    elif actualProfit >= 2.0 and actualProfit < 3.0:
+        y_label[15] = 1
+    elif actualProfit >= 3.0 and actualProfit < 5.0:
+        y_label[16] = 1
+    elif actualProfit >= 5:
+        y_label[17] = 1
+    yLabel.append(y_label)
     print(len(trainYArr), len(actionRetrainArr), len(volumeRetrainArr))
 
 
@@ -207,7 +245,7 @@ def retrainingNN2():
     volumeRetrainArr = volumeRetrainArr.reshape(-1, 1)
     volumeRetrainArr = scaler_volume.transform(volumeRetrainArr)
     yLabel = np.array(yLabel)
-    yLabel = yLabel.reshape(-1, 1)
+    yLabel = yLabel.reshape(-1, 18)
     #print('volumeRetrainArr', volumeRetrainArr)
     for i in range(len(trainYArr)):
         arrXRetrain.append(trainYArr[i][0])
@@ -215,7 +253,7 @@ def retrainingNN2():
         arrXRetrain.append(volumeRetrainArr[i][0])
     arrXRetrain = np.array(arrXRetrain)
     arrXRetrain = arrXRetrain.reshape(-1, 3)
-    print(arrXRetrain)
+    print('arrXRetrain', arrXRetrain, 'yLabel', yLabel)
     # model = load_model('notSkipping_nn2_1hr.h5')
     model.fit(arrXRetrain, yLabel, epochs=64, verbose=1)
     # model.save('notSkipping_nn2_1hr.h5')

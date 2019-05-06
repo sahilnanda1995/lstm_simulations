@@ -202,20 +202,19 @@ print('dataset length', len(dataset))
 
 
 callTakingProb = nn2_for_1hr.predict_value(trainY, testPredict, train_volume_dataset)
-
 # upDownPred = lstm_up_down_step_01.predict_upDown(test_rsi_dataset)
 
-# if testPredict[0][0] > trainY[0][0]:
-#     actionTaken = 1
-# else:
-#     actionTaken = 0
-# print('nn2_appending_inputs', trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
-# nn2_for_1hr.appendLatestTradeExample(trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
+if testPredict[0][0] > trainY[0][0]:
+    actionTaken = 1
+else:
+    actionTaken = 0
+print('nn2_appending_inputs', trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
+nn2_for_1hr.appendLatestTradeExample(trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
 
 # export prediction and actual prices
 # df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3), "upDownPred": np.around(list(upDownPred.reshape(-1)), decimals=3)})
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "pred_1hr_nn2_not_retraining.csv" 
+file_name = "pred_1hr_nn2_retraining.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
@@ -361,16 +360,16 @@ for i in range(8760+step, len(dataset)-10, step):
     print('test_rsi_dataset', test_rsi_dataset)
     callTakingProb = nn2_for_1hr.predict_value(trainY, testPredict, train_volume_dataset)
     # upDownPred = lstm_up_down_step_01.predict_upDown(test_rsi_dataset)
-    # if testPredict[len(testPredict)-1][0] > trainY[len(trainY)-1][0]:
-    #     actionTaken = 1
-    # else:
-    #     actionTaken = 0
-    # print('nn2_appending_inputs', trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
-    # nn2_for_1hr.appendLatestTradeExample(trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
-    # trades_count = trades_count+1
-    # if trades_count == 10:
-    #     nn2_for_1hr.retrainingNN2()
-    #     trades_count = 0
+    if testPredict[len(testPredict)-1][0] > trainY[len(trainY)-1][0]:
+        actionTaken = 1
+    else:
+        actionTaken = 0
+    print('nn2_appending_inputs', trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
+    nn2_for_1hr.appendLatestTradeExample(trainY[0][0], testPredict[0][0], actionTaken, arr2[0][0], train_volume_dataset[0][0])
+    trades_count = trades_count+1
+    if trades_count == 10:
+        nn2_for_1hr.retrainingNN2()
+        trades_count = 0
     # print('callTakingProb', callTakingProb)
 	# export prediction and actual prices
     # df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3), "upDownPred": np.around(list(upDownPred.reshape(-1)), decimals=3)})
