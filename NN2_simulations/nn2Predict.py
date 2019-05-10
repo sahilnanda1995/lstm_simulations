@@ -13,7 +13,7 @@ import time
 import nn2Example #helper libraries
 
 
-input_file_3yr = "DIS2.csv"
+input_file_3yr = "../3yr4mon5min_bit.csv"
 
 print('input_file_3yr length', len(input_file_3yr))
 
@@ -23,22 +23,22 @@ def create_dataset(dataset, look_back=1):
 	dataX, dataY = [], []
 	for i in range(len(dataset)-look_back-1-forecastCandle):
 		a = dataset[i:(i+look_back)]
-		print('a', a)
+		# print('a', a)
 		dataX.append(a)
-		print('dataX', dataX)
-		print('b', dataset[i + look_back + forecastCandle, 3])
+		# print('dataX', dataX)
+		# print('b', dataset[i + look_back + forecastCandle, 3])
 
 		dataY.append(dataset[i + look_back + forecastCandle, 3])
-		print('dataY', dataY)
+		# print('dataY', dataY)
 	return np.array(dataX), np.array(dataY)
 
 # fix random seed for reproducibility
 np.random.seed(5)
 
 # load the dataset
-df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
+df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[1,2,3,4])
 # df2 = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
-df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[4])
+df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[5])
 
 print('volumelength', len(df2_volume))
 # print('df length', len(df))
@@ -73,10 +73,10 @@ dataset=dataset.reshape(-1, 4)
 
 print('dataset length', len(dataset))
 
-look_back = 240
+look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 105121
+train_size = 332640
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
@@ -139,7 +139,7 @@ model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
-model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
+model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
 # make predictions
 trainPredict = model.predict(trainX)
@@ -216,7 +216,7 @@ callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "prediction_with_nn2_debugging.csv" 
+file_name = "5min_2mon_mar_may_analysis.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -224,7 +224,7 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.plot(testPredictPlot)
 #plt.show()
 step = 10
-for i in range(105121+step, len(dataset)-10, step):
+for i in range(332640+step, len(dataset)-10, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
@@ -284,7 +284,7 @@ for i in range(105121+step, len(dataset)-10, step):
 	#model.add(Dropout(0.1))
 	#model.add(Dense(1))
 	#model.compile(loss='mse', optimizer='adam')
-	model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
+	model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
 	# make predictions
 	trainPredict = model.predict(trainX)

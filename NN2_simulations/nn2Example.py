@@ -10,7 +10,7 @@ from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import load_model
 
-input_file="nn2examples.csv"
+input_file="nn2examples_5min_2yr2mon.csv"
 
 entry_test_price = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[0])
 prediction = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[1])
