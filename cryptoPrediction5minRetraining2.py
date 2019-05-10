@@ -40,7 +40,7 @@ dataset=all_y.reshape(-1, 1)
 scaler = MinMaxScaler(feature_range=(0, 1))
 dataset = scaler.fit_transform(dataset)
 
-look_back = 240
+look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
 train_size = 105121
@@ -145,7 +145,7 @@ print(len(testPredict))
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "lstm_result_5min_retesting2.csv" 
+file_name = "lstm_result_5min_lookBack_20_without_retraining.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -210,7 +210,7 @@ for i in range(105121+step, dataset_len - step, step):
     #model.add(Dropout(0.1))
     #model.add(Dense(1))
     #model.compile(loss='mse', optimizer='adam')
-    model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+    # model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
 
     # make predictions
     trainPredict = model.predict(trainX)
