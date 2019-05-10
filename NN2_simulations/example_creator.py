@@ -12,13 +12,10 @@ from keras.layers.core import Dense, Activation, Dropout
 import time #helper libraries
 
 # file is downloaded from finance.yahoo.com, 1.1.1997-1.1.2017
-# training data = 1.1.1997 - 1.1.2007
-# test data = 1.1.2007 - 1.1.2017
-input_file="DIS3.csv"
+# input_file="../3yr4mon5min_bit.csv"
 
-input_file_3yr = "three_yr_data.csv"
+input_file_3yr = "../3yr4mon5min_bit.csv"
 
-print('input_file length', len(input_file))
 print('input_file_3yr length', len(input_file_3yr))
 
 forecastCandle = 9
@@ -35,9 +32,9 @@ def create_dataset(dataset, look_back=1):
 np.random.seed(5)
 
 # load the dataset
-df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
+df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[1,2,3,4])
 # df2 = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
-df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[4])
+df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[5])
 
 print('volumelength', len(df2_volume))
 # print('df length', len(df))
@@ -72,7 +69,7 @@ dataset=dataset.reshape(-1, 4)
 
 print('dataset length', len(dataset))
 
-look_back = 240
+look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
 train_size = 105121
@@ -136,8 +133,8 @@ model = Sequential()
 model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
-model.compile(loss='mse', optimizer='adam')
-model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+model.compile(loss='mse', optimizer='adam',metrics=['mae'])
+model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
 # make predictions
 trainPredict = model.predict(trainX)
@@ -184,7 +181,7 @@ print(len(testPredict))
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "nn2examples2.csv" 
+file_name = "nn2examples_2yr2mon.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -192,7 +189,7 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.plot(testPredictPlot)
 #plt.show()
 step = 10
-for i in range(105121+step, len(dataset)-19442, step):
+for i in range(105121+step, len(dataset)-19590, step):
     train_size = i
     dataset_len = len(dataset) 
     # print(len(dataset))
@@ -252,7 +249,7 @@ for i in range(105121+step, len(dataset)-19442, step):
     #model.add(Dropout(0.1))
     #model.add(Dense(1))
     #model.compile(loss='mse', optimizer='adam')
-    model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+    model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
     # make predictions
     trainPredict = model.predict(trainX)
