@@ -10,8 +10,8 @@ y_train = keras.utils.to_categorical(np.random.randint(10, size=(1000, 1)), num_
 x_test = np.random.random((100, 20))
 y_test = keras.utils.to_categorical(np.random.randint(10, size=(100, 1)), num_classes=10)
 
-print('x_train', x_train[-2:])
-print('y_train', y_train[-2:])
+print('x_train', x_train[-10:])
+print('y_train', y_train[-10:])
 
 model = Sequential()
 # Dense(64) is a fully-connected layer with 64 hidden units.
