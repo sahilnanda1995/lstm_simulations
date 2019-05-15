@@ -61,6 +61,51 @@ def create_dataset(dataset, volume_dataset, look_back=1):
 		# print('dataY', dataY)
 	return np.array(dataX2), np.array(dataY2)
 
+
+def create_dataset2(dataset, volume_dataset, look_back=1):
+	dataX, dataY = [], []
+	dataX2, dataY2 = [], []
+	for i in range(len(dataset)-look_back-1-forecastCandle):
+		b = []
+		a = dataset[i:(i+look_back)]
+		vol = volume_dataset[i:(i+look_back)]
+		a = scaler.fit_transform(a)
+		vol = scaler_vol.fit_transform(vol)
+		for x in range(len(a)):
+			b.append(a[x])
+			b.append(vol[x])
+		b = np.array(b)
+		b = b.reshape(-1,2)
+		# print('b', b)
+		a = b
+		dataX.append(a)
+		# print('a', a[-10:])
+		# print('vol', vol[-10:])
+		# print('index', np.argmax(a[-10:], axis = 0)[0])
+		# print('index', np.argmin(a[-10:], axis = 0)[0])
+		# print('dataX', dataX)
+		# for j in range(1,11):
+		# 	if j!=10:
+		# 		dataX2.append(a[-20+j:-10+j])
+		# 	else:
+		# 		dataX2.append(a[-20+j:])
+		# 	if j == (np.argmin(a[-10:], axis = 0)[0]+1):
+		# 		dataY2.append([1, 0, 0]) # long
+		# 	elif j == (np.argmax(a[-10:], axis = 0)[0]+1):
+		# 		dataY2.append([0, 1, 0]) # short
+		# 	else:
+		# 		dataY2.append([0, 0, 1]) # do nothing
+
+		dataX2.append(a[-10:])
+		dataY2.append(scaler.inverse_transform([[a[len(a)-1][0]]]))
+		# print('dataX2', dataX2)
+		# print('dataY2', dataY2)
+		# dataY.append(dataset[i + look_back + forecastCandle, 3])
+		# print('dataY', dataY)
+	return np.array(dataX2), np.array(dataY2)
+
+
+
 # fix random seed for reproducibility
 np.random.seed(5)
 
@@ -86,6 +131,7 @@ df2_volume = volume_all_y.reshape(-1, 1)
 
 # normalize the dataset
 scaler = MinMaxScaler(feature_range=(0, 1))
+scaler_vol = MinMaxScaler(feature_range=(0, 1))
 # dataset = scaler.fit_transform(dataset)
 
 dataset=dataset.reshape(-1, 1)
@@ -111,7 +157,7 @@ print('train_volume_dataset', train_volume_dataset[0:2])
 #print(train[len(train)-20:])
 #print(test[look_back+forecastCandle])
 trainX, trainY = create_dataset(train, train_volume_dataset, look_back)
-testX, testY = create_dataset(test, test_volume_dataset, look_back)
+testX, testY = create_dataset2(test, test_volume_dataset, look_back)
 
 print(len(testX))
 
@@ -180,7 +226,7 @@ model.add(LSTM(25, input_shape=(2, 10)))
 model.add(Dense(25, activation='relu'))
 model.add(Dense(3, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-history = model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
+history = model.fit(trainX, trainY, epochs=1, batch_size=60, verbose=1)
 
 
 # plt.plot(history.history['mean_absolute_error'])
@@ -206,7 +252,7 @@ testPredict = model.predict(testX)
 
 print(len(testPredict))
 for i in range(len(testPredict)):
-	print(testPredict[i])
+	print(testPredict[i], testY[i])
 
 
 # invert predictions
