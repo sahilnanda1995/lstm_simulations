@@ -112,7 +112,7 @@ testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 # create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
 model = Sequential()
 model.add(LSTM(200, dropout=0.2, recurrent_dropout=0.2, input_shape=(1, look_back)))
-model.add(Dense(1, activation='sigmoid'))
+model.add(Dense(1, activation='softmax'))
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 # print(model.summary())
 model.fit(trainX, trainY, epochs=20, batch_size=5)
@@ -181,7 +181,7 @@ print(len(testPredict))
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2)})
 file_name = "lstm_upDown_step_01_result.csv" 
-df.to_csv(file_name, sep=';', index=None)
+# df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
 # plot the actual price, prediction in test data=red line, actual price=blue line

@@ -11,34 +11,22 @@ from sklearn.metrics import mean_squared_error
 from keras.layers.core import Dense, Activation, Dropout
 import time #helper libraries
 
+# file is downloaded from finance.yahoo.com, 1.1.1997-1.1.2017
+# training data = 1.1.1997 - 1.1.2007
+# test data = 1.1.2007 - 1.1.2017
 
-input_file_3yr = "../3yr4mon5min_bit.csv"
+input_file_3yr = "../3yr4mon_1day.csv"
 
 print('input_file_3yr length', len(input_file_3yr))
 
-forecastCandle = 9
+forecastCandle = 0
 # convert an array of values into a dataset matrix
-def create_dataset(dataset, vol_dataset, look_back=1):
+def create_dataset(dataset, look_back=1):
 	dataX, dataY = [], []
 	for i in range(len(dataset)-look_back-1-forecastCandle):
-		c = []
 		a = dataset[i:(i+look_back)]
-		# print('a', a[-10:])
-		b = vol_dataset[i:(i+look_back)]
-		# print('b', b[-10:])
-		# a = a.reshape(-1, 1)
-		for j in range(len(b)):
-			for k in range(len(a[j])):
-				c.append(a[j][k])
-			c.append(b[j])
-		c = np.array(c)
-		c = c.reshape(-1, 1)
-		c = c.reshape(-1, 5)
-		# print('c', c)
-		dataX.append(c)
+		dataX.append(a)
 		# print('dataX', dataX)
-		# print('b', dataset[i + look_back + forecastCandle, 3])
-
 		dataY.append(dataset[i + look_back + forecastCandle, 3])
 		# print('dataY', dataY)
 	return np.array(dataX), np.array(dataY)
@@ -51,12 +39,6 @@ df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecol
 # df2 = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
 df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[5])
 
-df3_timeStamp = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0])
-
-df3_timeStamp = df3_timeStamp.values
-
-df3_timeStamp = df3_timeStamp.reshape(-1, 1)
-
 print('volumelength', len(df2_volume))
 # print('df length', len(df))
 # print('df all', df.values)
@@ -65,8 +47,6 @@ print('volumelength', len(df2_volume))
 # take close price column[5]
 all_y = df.values
 print(all_y[0:10])
-# all_y_3yr = df2.values
-# print(all_y_3yr[0:10])
 
 dataset=all_y.reshape(-1, 1)
 
@@ -74,36 +54,22 @@ volume_all_y = df2_volume.values
 
 df2_volume = volume_all_y.reshape(-1, 1)
 
-# dataset_3yr=all_y_3yr.reshape(-1, 1)
-
-# print('dataset length', len(dataset))
-print(dataset[0:10])
-
-# print('dataset_3yr length', len(dataset_3yr))
-# print(dataset_3yr[0:10])
-
 # normalize the dataset
 scaler = MinMaxScaler(feature_range=(0, 1))
 dataset = scaler.fit_transform(dataset)
 
 dataset=dataset.reshape(-1, 4)
 
-scaler_vol = MinMaxScaler(feature_range=(0, 1))
-cdf2_volume = scaler_vol.fit_transform(df2_volume)
-
 print('dataset length', len(dataset))
 
 look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 315360
+train_size = 365
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
-train, test, train_volume_dataset, test_volume_dataset = dataset[0:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[0:train_size,:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:]
-
-train_timeStamp = df3_timeStamp[0:train_size,:]
-
+train, test, train_volume_dataset, test_volume_dataset = dataset[0:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[0:train_size-1,:], df2_volume[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1]
 
 # reshape into X=t and Y=t+1, timestep 240
 print('train ', train[0:2])
@@ -111,8 +77,8 @@ print('test ', test[0:2])
 print('train_volume_dataset', train_volume_dataset[0:2])
 #print(train[len(train)-20:])
 #print(test[look_back+forecastCandle])
-trainX, trainY = create_dataset(train, train_volume_dataset,look_back)
-testX, testY = create_dataset(test, test_volume_dataset,look_back)
+trainX, trainY = create_dataset(train, look_back)
+testX, testY = create_dataset(test, look_back)
 
 trainXArr = []
 for val in trainX[len(trainX)-1]:
@@ -121,7 +87,7 @@ for val in trainX[len(trainX)-1]:
 trainXArr = np.array(trainXArr)
 trainXArr = trainXArr[-10:]
 trainXArr = trainXArr.reshape(-1,1)
-# print(trainXArr)
+print(trainXArr)
 trainXArr = scaler.inverse_transform(trainXArr)
 
 print('trainXArr', trainXArr)
@@ -140,7 +106,7 @@ for val in testX[len(testX)-1]:
 testXArr = np.array(testXArr)
 testXArr = testXArr[-10:]
 testXArr = testXArr.reshape(-1,1)
-# print(testXArr)
+print(testXArr)
 testXArr = scaler.inverse_transform(testXArr)
 
 print('testXArr', testXArr)
@@ -151,17 +117,18 @@ testYArr = testYArr.reshape(-1, 1)
 testYArr = scaler.inverse_transform(testYArr)
 print('testYArr', testYArr)
 
+
 # reshape input to be [samples, time steps, features]
-trainX = np.reshape(trainX, (trainX.shape[0], 5, trainX.shape[1]))
-testX = np.reshape(testX, (testX.shape[0], 5, testX.shape[1]))
+trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
+testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
 
 
 # create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
 model = Sequential()
-model.add(LSTM(25, input_shape=(5, look_back)))
+model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
-model.compile(loss='mse', optimizer='adam',metrics=['mae'])
+model.compile(loss='mse', optimizer='adam')
 model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
 # make predictions
@@ -220,50 +187,49 @@ testPredictPlot[:, :] = np.nan
 arr2 = testYArr
 print('arr2', arr2)
 
-train_volume_dataset = train_volume_dataset[-21:-11]
+train_volume_dataset = train_volume_dataset[-1:]
 print('train_volume_dataset', train_volume_dataset)
+print('test_volume_dataset', test_volume_dataset[-1:])
 
 #entry price
 trainY = trainY.reshape(-1, 1)
 trainY = trainY[-1:]
-arr2 = arr2[-1:]
-testPredict = testPredict[-1:]
-train_volume_dataset = train_volume_dataset[-1:]
+
 print('trainY2', trainY)
 print('testPredictions:')
 print(testPredict)
 print(len(testPredict))
-train_timeStamp = train_timeStamp[-2:-1]
-print('train_timeStamp', train_timeStamp[-1:])
 
-# print('callTakingProb', callTakingProb)
+print('dataset length', len(dataset))
+# print('dataset length', len(trainX))
 
 # export prediction and actual prices
-df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2), "prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "lstm_with_volume_lookback20.csv" 
+df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
+file_name = "bit_1day_trade_examples_for_nn2.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
 # plot the actual price, prediction in test data=red line, actual price=blue line
 #plt.plot(testPredictPlot)
 #plt.show()
-step = 10
-for i in range(315360+step, len(dataset)-10, step):
+step = 1
+for i in range(365+step, 1095, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
 	test_size = len(dataset) - train_size + look_back
-	train, test, train_volume_dataset, test_volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step):train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size-look_back-(forecastCandle+1+step):train_size,:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:]
+	# train, test, train_volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step):train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1)]
+	# Need to keep track of volume data in case we include it in price prediction as an input for future cases(added -1 in each index)
+	train, test, train_volume_dataset, test_volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step)-9:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size-look_back-(forecastCandle+1+step)-1:train_size-1,:], df2_volume[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1]
 
-	train_timeStamp = df3_timeStamp[train_size-look_back-(forecastCandle+1+step):train_size,:]
 	# reshape into X=t and Y=t+1, timestep 240
 	# print(len(train))
 	# print(len(test))
 	#print(train[len(train)-20:])
 	#print(test[look_back+forecastCandle])
-	trainX, trainY = create_dataset(train, train_volume_dataset,look_back)
-	testX, testY = create_dataset(test, test_volume_dataset,look_back)
-	# print(len(trainX))
+	trainX, trainY = create_dataset(train, look_back)
+	testX, testY = create_dataset(test, look_back)
+
 	trainXArr = []
 	for val in trainX[len(trainX)-1]:
 		trainXArr.append(val[3])
@@ -299,9 +265,13 @@ for i in range(315360+step, len(dataset)-10, step):
 	testYArr = scaler.inverse_transform(testYArr)
 	print('testYArr', testYArr)
 
+	# print(len(trainX))
+	# print(len(testX))
+	# print(len(testY))
+
 	# reshape input to be [samples, time steps, features]
-	trainX = np.reshape(trainX, (trainX.shape[0], 5, trainX.shape[1]))
-	testX = np.reshape(testX, (testX.shape[0], 5, testX.shape[1]))
+	trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
+	testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
 
 	# create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
 	#model = Sequential()
@@ -320,7 +290,7 @@ for i in range(315360+step, len(dataset)-10, step):
 	trainY = scaler.inverse_transform([trainY])
 	testPredict = scaler.inverse_transform(testPredict)
 	testY = scaler.inverse_transform([testY])
-	# print('trainX', scaler.inverse_transform(trainX[len(trainX)-1]))
+
 	#print('trainX[first]')
 	#print('trainX[first]')
 	#print(trainX[0])
@@ -331,7 +301,7 @@ for i in range(315360+step, len(dataset)-10, step):
 	#print('testX[last]')
 	#print(testX[len(testX) - 1])
 	# print('train len:', len(trainY))
-	print('trainY', trainY)
+	# print(trainY[0])
 	# print('test len:', len(testY))
 	# print(testY[0])
 	# print(len(testY))
@@ -358,27 +328,31 @@ for i in range(315360+step, len(dataset)-10, step):
 	# shift test predictions for plotting
 	testPredictPlot = np.empty_like(dataset)
 	testPredictPlot[:, :] = np.nan
-	#testPredictPlot[len(trainPredict)+(look_back*2)+1:len(dataset)-1-(forecastCandle*2), :] = testPredict
-
+	
 	arr2 = testYArr
-	print('arr2', arr2)
+	# print('arr2', arr2)
 	# print('train_volume_dataset', train_volume_dataset)
-	
-	train_volume_dataset = train_volume_dataset[-21:-11]
+	# print('test_volume_dataset', test_volume_dataset)
+
+	train_volume_dataset = train_volume_dataset[-1:]
 	# print('train_volume_dataset', train_volume_dataset)
-	
+	# print('test_volume_dataset', test_volume_dataset[-1:])
+	# arr2 = []
+	# for val in testPrices:
+	#     arr2.append([val[3]])
+
+	# arr2 = np.array(arr2)
+	# arr2.reshape(-1,1)
+
+	# print(arr2)
 	#entry price
 	trainY = trainY.reshape(-1, 1)
 	trainY = trainY[-1:]
-	arr2 = arr2[-1:]
-	testPredict = testPredict[-1:]
-	train_volume_dataset = train_volume_dataset[-1:]
-	train_timeStamp = train_timeStamp[-2:-1]
-	print('train_timeStamp', train_timeStamp[-1:])
 
-	# print('callTakingProb', callTakingProb)
+	train_volume_dataset = train_volume_dataset[-1:]
+
 	# export prediction and actual prices
-	df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2), "prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
+	df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
 	#file_name = "lstm_result_5min_x_is_10_retraining2"+ str(train_size)+ ".csv" 
 	df.to_csv(file_name, sep=';', mode = 'a', index=None, header=None)
 
