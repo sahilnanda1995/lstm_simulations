@@ -42,7 +42,6 @@ def create_dataset(dataset, volume_dataset, look_back=1):
 		# print('vol', vol[-10:])
 		# print('index', np.argmax(a[-10:], axis = 0)[0])
 		# print('index', np.argmin(a[-10:], axis = 0)[0])
-		# print('dataX', dataX)
 		for j in range(1,11):
 			if j!=10:
 				dataX2.append(a[-20+j:-10+j])
@@ -54,11 +53,8 @@ def create_dataset(dataset, volume_dataset, look_back=1):
 				dataY2.append([0, 1, 0]) # short
 			else:
 				dataY2.append([0, 0, 1]) # do nothing
-			# dataX2.append(a[-20+j:-10+j])
 		# print('dataX2', dataX2)
 		# print('dataY2', dataY2)
-		# dataY.append(dataset[i + look_back + forecastCandle, 3])
-		# print('dataY', dataY)
 	return np.array(dataX2), np.array(dataY2)
 
 
@@ -68,9 +64,13 @@ def create_dataset2(dataset, volume_dataset, look_back=1):
 	for i in range(len(dataset)-look_back-1-forecastCandle):
 		b = []
 		a = dataset[i:(i+look_back)]
+		# print('a', a[-10:])
 		vol = volume_dataset[i:(i+look_back)]
+		# print('vol', vol[-10:])
 		a = scaler.fit_transform(a)
+		# print('a', a[-10:])
 		vol = scaler_vol.fit_transform(vol)
+		# print('vol', vol[-10:])
 		for x in range(len(a)):
 			b.append(a[x])
 			b.append(vol[x])
@@ -157,6 +157,7 @@ print('train_volume_dataset', train_volume_dataset[0:2])
 #print(train[len(train)-20:])
 #print(test[look_back+forecastCandle])
 trainX, trainY = create_dataset(train, train_volume_dataset, look_back)
+print('testing data')
 testX, testY = create_dataset2(test, test_volume_dataset, look_back)
 
 print(len(testX))
@@ -269,5 +270,5 @@ do_nothing_Arr = np.array(do_nothing_Arr)
 
 
 df = pd.DataFrame(data={"price": np.around(list(testY.reshape(-1)), decimals=2), "long_prob": np.around(list(long_Arr.reshape(-1)), decimals=8), "short_prob": np.around(list(short_Arr.reshape(-1)), decimals=8), "do_nothing_prob": np.around(list(do_nothing_Arr.reshape(-1)), decimals=8)})
-file_name = "long_short_prob.csv" 
+file_name = "long_short_prob_rechecking.csv" 
 df.to_csv(file_name, sep=';', index=None)

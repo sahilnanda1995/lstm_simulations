@@ -76,7 +76,7 @@ print('dataset length', len(dataset))
 look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 332640
+train_size = 288860
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
@@ -216,7 +216,7 @@ callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "5min_2mon_mar_may_analysis.csv" 
+file_name = "5min_October2018_analysis.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -224,7 +224,7 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.plot(testPredictPlot)
 #plt.show()
 step = 10
-for i in range(332640+step, len(dataset)-10, step):
+for i in range(288860+step, 298000, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
