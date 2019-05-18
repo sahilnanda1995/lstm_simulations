@@ -86,8 +86,8 @@ print(len(arrX))
 arrX = np.array(arrX)
 arrX = arrX.reshape(-1,3)
 
-arrX = arrX[0:18380]
-arrY = arrY[0:18380]
+# arrX = arrX[0:22700]
+# arrY = arrY[0:22700]
 # print(arrX)
 # print(X)
 # print(y)
