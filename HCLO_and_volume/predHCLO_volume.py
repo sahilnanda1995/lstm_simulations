@@ -89,7 +89,7 @@ dataset = scaler.fit_transform(dataset)
 dataset=dataset.reshape(-1, 4)
 
 scaler_vol = MinMaxScaler(feature_range=(0, 1))
-cdf2_volume = scaler_vol.fit_transform(df2_volume)
+df2_volume = scaler_vol.fit_transform(df2_volume)
 
 print('dataset length', len(dataset))
 

@@ -13,20 +13,36 @@ import time
 import nn2_for_1dayCandle #helper libraries
 
 
-input_file_3yr = "../3yr4mon_1day.csv"
+input_file_3yr = "../bit_2013to2019_1dayCandle.csv"
 
 print('input_file_3yr length', len(input_file_3yr))
 
 forecastCandle = 0
 # convert an array of values into a dataset matrix
-def create_dataset(dataset, look_back=1):
+def create_dataset(dataset, vol_dataset, look_back=1):
 	dataX, dataY = [], []
 	for i in range(len(dataset)-look_back-1-forecastCandle):
+		c = []
 		a = dataset[i:(i+look_back)]
-		dataX.append(a)
-		dataY.append(dataset[i + look_back + forecastCandle, 3])
-	return np.array(dataX), np.array(dataY)
+		# print('a', a[-10:])
+		b = vol_dataset[i:(i+look_back)]
+		# print('b', b[-10:])
+		# a = a.reshape(-1, 1)
+		for j in range(len(b)):
+			for k in range(len(a[j])):
+				c.append(a[j][k])
+			c.append(b[j])
+		c = np.array(c)
+		c = c.reshape(-1, 1)
+		c = c.reshape(-1, 5)
+		# print('c', c)
+		dataX.append(c)
+		# print('dataX', dataX)
+		# print('b', dataset[i + look_back + forecastCandle, 3])
 
+		dataY.append(dataset[i + look_back + forecastCandle, 3])
+		# print('dataY', dataY)
+	return np.array(dataX), np.array(dataY)
 # fix random seed for reproducibility
 np.random.seed(5)
 
@@ -60,14 +76,19 @@ dataset=dataset.reshape(-1, 4)
 
 print('dataset length', len(dataset))
 
+
+scaler_vol = MinMaxScaler(feature_range=(0, 1))
+df2_volume = scaler_vol.fit_transform(df2_volume)
+
+
 look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 1095
+train_size = 2098
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
-train, test, train_volume_dataset, test_volume_dataset = dataset[0:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[0:train_size-1,:], df2_volume[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1]
+train, test, train_volume_dataset, test_volume_dataset = dataset[0:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[0:train_size,:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:]
 train_timeStamp, test_timeStamp = df3_timeStamp[0:train_size-1,:], df3_timeStamp[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1] 
 
 # reshape into X=t and Y=t+1, timestep 240
@@ -76,8 +97,8 @@ print('test ', test[0:2])
 print('train_volume_dataset', train_volume_dataset[0:2])
 #print(train[len(train)-20:])
 #print(test[look_back+forecastCandle])
-trainX, trainY = create_dataset(train, look_back)
-testX, testY = create_dataset(test, look_back)
+trainX, trainY = create_dataset(train, train_volume_dataset, look_back)
+testX, testY = create_dataset(test, test_volume_dataset, look_back)
 
 trainXArr = []
 for val in trainX[len(trainX)-1]:
@@ -118,13 +139,13 @@ print('testYArr', testYArr)
 
 
 # reshape input to be [samples, time steps, features]
-trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
-testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
+trainX = np.reshape(trainX, (trainX.shape[0], 5, trainX.shape[1]))
+testX = np.reshape(testX, (testX.shape[0], 5, testX.shape[1]))
 
 
 # create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
 model = Sequential()
-model.add(LSTM(25, input_shape=(4, look_back)))
+model.add(LSTM(25, input_shape=(5, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
@@ -209,18 +230,18 @@ callTakingProb = nn2_for_1dayCandle.predict_value(trainY, testPredict, train_vol
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "pred_1day_nn2.csv" 
+file_name = "pred_1day_nn2_with_volume_lookBack_20.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
 # trades_count = 1
-for i in range(1095+step, len(dataset)-10, step):
+for i in range(2098+step, len(dataset)-10, step):
     train_size = i
     dataset_len = len(dataset) 
     # print(len(dataset))
     test_size = len(dataset) - train_size + look_back
     # Need to keep track of volume data in case we include it in price prediction as an input for future cases(added -1 in each index)
-    train, test, train_volume_dataset, test_volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step)-9:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size-look_back-(forecastCandle+1+step)-1:train_size-1,:], df2_volume[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1]
+    train, test, train_volume_dataset, test_volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step)-9:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size-look_back-(forecastCandle+1+step)-9:train_size,:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:]
 
     train_timeStamp, test_timeStamp = df3_timeStamp[train_size-look_back-(forecastCandle+1+step)-1:train_size-1,:], df3_timeStamp[train_size - look_back - (forecastCandle+1)-1:train_size + (forecastCandle+1)-1] 
     # reshape into X=t and Y=t+1, timestep 240
@@ -228,8 +249,8 @@ for i in range(1095+step, len(dataset)-10, step):
     # print(len(test))
     #print(train[len(train)-20:])
     #print(test[look_back+forecastCandle])
-    trainX, trainY = create_dataset(train, look_back)
-    testX, testY = create_dataset(test, look_back)
+    trainX, trainY = create_dataset(train, train_volume_dataset, look_back)
+    testX, testY = create_dataset(test, test_volume_dataset, look_back)
 
     trainXArr = []
     for val in trainX[len(trainX)-1]:
@@ -271,8 +292,8 @@ for i in range(1095+step, len(dataset)-10, step):
     # print(len(testY))
 
     # reshape input to be [samples, time steps, features]
-    trainX = np.reshape(trainX, (trainX.shape[0], 4, trainX.shape[1]))
-    testX = np.reshape(testX, (testX.shape[0], 4, testX.shape[1]))
+    trainX = np.reshape(trainX, (trainX.shape[0], 5, trainX.shape[1]))
+    testX = np.reshape(testX, (testX.shape[0], 5, testX.shape[1]))
 
     # create and fit the LSTM network, optimizer=adam, 25 neurons, dropout 0.1
     #model = Sequential()
