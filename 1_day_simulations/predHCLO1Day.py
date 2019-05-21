@@ -81,7 +81,7 @@ scaler_vol = MinMaxScaler(feature_range=(0, 1))
 df2_volume = scaler_vol.fit_transform(df2_volume)
 
 
-look_back = 20
+look_back = 1095
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
 train_size = 2098
@@ -230,7 +230,7 @@ callTakingProb = nn2_for_1dayCandle.predict_value(trainY, testPredict, train_vol
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "pred_1day_nn2_with_volume_lookBack_20.csv" 
+file_name = "pred_1day_nn2_with_volume_lookBack_1095.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
