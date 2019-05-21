@@ -10,14 +10,13 @@ from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import load_model
 
-input_file="nn2examples_5min_2yr2mon.csv"
+input_file="bit_1hr_trade_examples_for_2yrs2mon_nn2.csv"
 
 entry_test_price = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[0])
 prediction = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[1])
 test_price = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[2])
 volume = read_csv(input_file, index_col=None, header=None, delimiter=';', usecols=[3])
 
-arr = []
 
 entry_test_price = entry_test_price.values
 prediction = prediction.values
@@ -25,7 +24,8 @@ test_price = test_price.values
 volume = volume.values
 
 scaler_volume = MinMaxScaler(feature_range=(0, 1))
-volume = scaler_volume.fit_transform(volume)
+
+#volume = scaler_volume.fit_transform(volume)
 
 scaler_predProfit = MinMaxScaler(feature_range=(0, 1))
 
@@ -62,11 +62,16 @@ for i in range(0,len(entry_test_price)):
             arrY.append(0)
 
 
-print('volume length', len(volume))
 predProfitArr = np.array(predProfitArr)
 predProfitArr = predProfitArr.reshape(-1,1)
 predProfitArr = scaler_predProfit.fit_transform(predProfitArr)
-# print(predProfitArr)
+print(predProfitArr[0:10])
+
+volumeArr = np.array(volume)
+volumeArr = volumeArr.reshape(-1,1)
+volumeArr = scaler_volume.fit_transform(volumeArr)
+print(volumeArr[0:10])
+
 actionArr = np.array(actionArr)
 actionArr = actionArr.reshape(-1,1)
 print(len(volumeArr))
@@ -78,16 +83,13 @@ print(len(arrY))
 for i in range(len(predProfitArr)):
     arrX.append(predProfitArr[i][0])
     arrX.append(actionArr[i][0])
-    arrX.append(volumeArr[i])
+    arrX.append(volumeArr[i][0])
 
 print(len(arrX))
 # print(arrX)
 
 arrX = np.array(arrX)
 arrX = arrX.reshape(-1,3)
-
-# arrX = arrX[0:22700]
-# arrY = arrY[0:22700]
 # print(arrX)
 # print(X)
 # print(y)
@@ -122,7 +124,7 @@ for i in range(0,30):
     print("X=%s, Predicted=%s, arrY=%s" % (arrX[i], ynew[i], arrY[i]))
 
 
-model.save('notSkipping_nn2.h5')  # creates a HDF5 file 'notSkipping_nn2.h5'
+model.save('notSkipping_nn2_1hr.h5')  # creates a HDF5 file 'notSkipping_nn2_1hr.h5'
 
 trainYArr = []
 actionRetrainArr = []
@@ -134,7 +136,7 @@ def appendLatestTradeExample(previous_price, previous_predictedPrice, actionTake
     global actionRetrainArr
     global volumeRetrainArr
     global yLabel
-    print('predictedPrice', previous_predictedPrice, 'previousPrice', previous_price, 'actualPrice', actualPrice)
+    print('predictedPrice', previous_predictedPrice, 'previousPrice', previous_price, 'actualPrice', actualPrice, 'volume', volume)
     trainYArr.append([abs(float(previous_predictedPrice - previous_price))/previous_price*100])
     actionRetrainArr.append([actionTaken])
     volumeRetrainArr.append([volume])
@@ -176,14 +178,13 @@ def retrainingNN2():
     for i in range(len(trainYArr)):
         arrXRetrain.append(trainYArr[i][0])
         arrXRetrain.append(actionRetrainArr[i][0])
-        arrXRetrain.append(volumeRetrainArr[i])
+        arrXRetrain.append(volumeRetrainArr[i][0])
     arrXRetrain = np.array(arrXRetrain)
     arrXRetrain = arrXRetrain.reshape(-1, 3)
-    # print(arrXRetrain)
-    # model = load_model('notSkipping_nn2.h5')
-    print('nn2Retraining')
+    print(arrXRetrain)
+    model = load_model('notSkipping_nn2_1hr.h5')
     model.fit(arrXRetrain, yLabel, epochs=64, verbose=1)
-    # model.save('notSkipping_nn2.h5')
+    model.save('notSkipping_nn2_1hr.h5')
     trainYArr = []
     actionRetrainArr = []
     volumeRetrainArr = []
@@ -226,7 +227,7 @@ def predict_value(trainY, prediction, volumeX):
     trainX = np.array(trainX)
     trainX = trainX.reshape(-1,3)
     # print(trainX)
-    # model = load_model('notSkipping_nn2.h5')
+    model = load_model('notSkipping_nn2_1hr.h5')
     predProb = model.predict_proba(trainX)
     # print('inside predval', predProb)
     return predProb

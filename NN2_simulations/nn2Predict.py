@@ -40,6 +40,12 @@ df = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecol
 # df2 = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0,1,2,3])
 df2_volume = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[5])
 
+df3_timeStamp = read_csv(input_file_3yr, header=None, index_col=None, delimiter=',', usecols=[0])
+
+df3_timeStamp = df3_timeStamp.values
+
+df3_timeStamp = df3_timeStamp.reshape(-1, 1)
+
 print('volumelength', len(df2_volume))
 # print('df length', len(df))
 # print('df all', df.values)
@@ -76,11 +82,13 @@ print('dataset length', len(dataset))
 look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 343100
+train_size = 332640
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
 train, test, volume_dataset = dataset[0:train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1)]
+
+train_timeStamp = df3_timeStamp[0:train_size,:]
 
 # reshape into X=t and Y=t+1, timestep 240
 print('train ', train[0:2])
@@ -210,13 +218,15 @@ print('trainY2', trainY)
 print('testPredictions:')
 print(testPredict)
 print(len(testPredict))
+train_timeStamp = train_timeStamp[-2:-1]
+print('train_timeStamp', train_timeStamp[-1:])
 
 callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
 # print('callTakingProb', callTakingProb)
 
 # export prediction and actual prices
-df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
-file_name = "5min_Apr2019_analysis.csv" 
+df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
+file_name = "5min_2mon_mar_may_analysis_nn2_doubled.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -224,12 +234,13 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.plot(testPredictPlot)
 #plt.show()
 step = 10
-for i in range(343100+step, len(dataset)-10, step):
+for i in range(332640+step, len(dataset)-10, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
 	test_size = len(dataset) - train_size + look_back
 	train, test, volume_dataset = dataset[train_size-look_back-(forecastCandle+1+step):train_size,:], dataset[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1),:], df2_volume[train_size - look_back - (forecastCandle+1):train_size + (forecastCandle+1)]
+	train_timeStamp = df3_timeStamp[train_size-look_back-(forecastCandle+1+step):train_size,:]
 
 	# reshape into X=t and Y=t+1, timestep 240
 	# print(len(train))
@@ -349,11 +360,13 @@ for i in range(343100+step, len(dataset)-10, step):
 	arr2 = arr2[-1:]
 	testPredict = testPredict[-1:]
 	volume_dataset = volume_dataset[-1:]
+	train_timeStamp = train_timeStamp[-2:-1]
+	print('train_timeStamp', train_timeStamp[-1:])
 
 	callTakingProb = nn2Example.predict_value(trainY, testPredict, volume_dataset)
 	# print('callTakingProb', callTakingProb)
 	# export prediction and actual prices
-	df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
+	df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2), "dont_skip_probab": np.around(list(callTakingProb.reshape(-1)), decimals=3)})
 	#file_name = "lstm_result_5min_x_is_10_retraining2"+ str(train_size)+ ".csv" 
 	df.to_csv(file_name, sep=';', mode = 'a', index=None, header=None)
 

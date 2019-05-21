@@ -15,7 +15,7 @@ import time #helper libraries
 # training data = 1.1.1997 - 1.1.2007
 # test data = 1.1.2007 - 1.1.2017
 
-input_file_3yr = "3yr1hr_bit.csv"
+input_file_3yr = "../3yr4mon1hr_bit.csv"
 
 print('input_file_3yr length', len(input_file_3yr))
 
@@ -60,7 +60,7 @@ dataset=dataset.reshape(-1, 4)
 
 print('dataset length', len(dataset))
 
-look_back = 240
+look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
 train_size = 8760
@@ -127,7 +127,7 @@ model.add(LSTM(25, input_shape=(4, look_back)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
-model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
 # make predictions
 trainPredict = model.predict(trainX)
@@ -203,7 +203,7 @@ print('dataset length', len(dataset))
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "bit_1hr_trade_examples_for_nn2.csv" 
+file_name = "bit_1hr_trade_examples_for_2yrs2mon_nn2.csv" 
 df.to_csv(file_name, sep=';', index=None)
 #df.to_json("testJson.json", orient = 'records')
 
@@ -211,7 +211,7 @@ df.to_csv(file_name, sep=';', index=None)
 #plt.plot(testPredictPlot)
 #plt.show()
 step = 1
-for i in range(8760+step, len(dataset)-1650, step):
+for i in range(8760+step, 27720, step):
     train_size = i
     dataset_len = len(dataset) 
     # print(len(dataset))
@@ -277,7 +277,7 @@ for i in range(8760+step, len(dataset)-1650, step):
     #model.add(Dropout(0.1))
     #model.add(Dense(1))
     #model.compile(loss='mse', optimizer='adam')
-    model.fit(trainX, trainY, epochs=64, batch_size=60, verbose=1)
+    model.fit(trainX, trainY, epochs=20, batch_size=60, verbose=1)
 
     # make predictions
     trainPredict = model.predict(trainX)
