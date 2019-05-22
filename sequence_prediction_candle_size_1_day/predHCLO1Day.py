@@ -91,7 +91,7 @@ df2_volume = scaler_vol.fit_transform(df2_volume)
 look_back = 20
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 2098
+train_size = 1733
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
@@ -279,12 +279,12 @@ print(len(testXArr))
 print(testXArr)
 
 df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2), "prediction01": np.around(list(testPredict[0:1].reshape(-1)), decimals=2), "prediction02": np.around(list(testPredict[1:2].reshape(-1)), decimals=2), "prediction03": np.around(list(testPredict[2:3].reshape(-1)), decimals=2), "prediction04": np.around(list(testPredict[3:4].reshape(-1)), decimals=2), "prediction05": np.around(list(testPredict[4:5].reshape(-1)), decimals=2), "prediction06": np.around(list(testPredict[5:6].reshape(-1)), decimals=2), "prediction07": np.around(list(testPredict[6:7].reshape(-1)), decimals=2), "prediction08": np.around(list(testPredict[7:8].reshape(-1)), decimals=2), "prediction09": np.around(list(testPredict[8:9].reshape(-1)), decimals=2), "prediction10": np.around(list(testPredict[-1:].reshape(-1)), decimals=2), "test_price01": np.around(list(arr2[0:1].reshape(-1)), decimals=2), "test_price02": np.around(list(arr2[1:2].reshape(-1)), decimals=2), "test_price03": np.around(list(arr2[2:3].reshape(-1)), decimals=2), "test_price04": np.around(list(arr2[3:4].reshape(-1)), decimals=2), "test_price05": np.around(list(arr2[4:5].reshape(-1)), decimals=2), "test_price06": np.around(list(arr2[5:6].reshape(-1)), decimals=2), "test_price07": np.around(list(arr2[6:7].reshape(-1)), decimals=2), "test_price08": np.around(list(arr2[7:8].reshape(-1)), decimals=2), "test_price09": np.around(list(arr2[8:9].reshape(-1)), decimals=2), "test_price10": np.around(list(arr2[-1:].reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(testXArr.reshape(-1)), decimals=2)})
-file_name = "sequencePred_1day.csv" 
+file_name = "sequencePred_1day_for_all_2018_may_2019.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
 trades_count = 1
-for i in range(2098+step, len(dataset)-10, step):
+for i in range(1733+step, len(dataset)-10, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
