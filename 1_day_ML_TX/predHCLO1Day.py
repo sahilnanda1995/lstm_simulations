@@ -14,7 +14,7 @@ import time
 
 
 input_file_3yr = "../bit_2013to2019_1dayCandle.csv"
-difficulty_input = "metcalfe-tx.csv"
+difficulty_input = "metcalfe-utxo.csv"
 print('input_file_3yr length', len(input_file_3yr))
 
 forecastCandle = 0
@@ -245,7 +245,7 @@ print('dataset length', len(dataset))
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "pred_1day_nn2_with_volume_ML_TX_lookBack_730.csv" 
+file_name = "pred_1day_nn2_with_volume_ML_UTXO_lookBack_730.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
