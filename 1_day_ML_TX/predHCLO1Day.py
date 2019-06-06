@@ -14,7 +14,7 @@ import time
 
 
 input_file_3yr = "../bit_2013to2019_1dayCandle.csv"
-difficulty_input = "daily-transactions.csv"
+difficulty_input = "block-height.csv"
 print('input_file_3yr length', len(input_file_3yr))
 
 forecastCandle = 0
@@ -96,7 +96,7 @@ df4_difficulty = scaler_diff.fit_transform(df4_difficulty)
 look_back = 730
 # split into train and test sets, 50% test data, 50% training data
 #size of 1 year data
-train_size = 2098
+train_size = 2226
 dataset_len = len(dataset) 
 print(len(dataset))
 test_size = len(dataset) - train_size + look_back
@@ -245,12 +245,12 @@ print('dataset length', len(dataset))
 
 # export prediction and actual prices
 df = pd.DataFrame(data={"timeStamp": np.around(list(train_timeStamp[-1].reshape(-1)), decimals=2),"prediction": np.around(list(testPredict.reshape(-1)), decimals=2), "test_price": np.around(list(arr2.reshape(-1)), decimals=2), "volume": np.around(list(train_volume_dataset.reshape(-1)), decimals=2), "entry_test_price": np.around(list(trainY.reshape(-1)), decimals=2)})
-file_name = "pred_1day_nn2_with_volume_daily_transactions_lookBack_730.csv" 
+file_name = "pred_1day_nn2_with_volume_block_height_lookBack_730_may.csv" 
 df.to_csv(file_name, sep=';', index=None)
 
 step = 1
 # trades_count = 1
-for i in range(2098+step, len(dataset)-10, step):
+for i in range(2226+step, len(dataset)-1, step):
 	train_size = i
 	dataset_len = len(dataset) 
 	# print(len(dataset))
