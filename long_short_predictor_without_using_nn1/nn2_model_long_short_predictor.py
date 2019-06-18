@@ -9,13 +9,16 @@ from keras.layers import Dense
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import load_model
+import pprint
 
-input_file="example_logs2_for_nn2.csv"
+input_file="../bit_2013to2019_1dayCandle.csv"
 
-priceData = read_csv(input_file, index_col=None, header=0, delimiter=';', usecols=[0, 1, 2, 3, 4, 5])
+priceData = read_csv(input_file, index_col=None, header=None, delimiter=',', usecols=[0, 1, 2, 3, 4, 5])
 print(priceData)
 
 priceData = priceData.values
+
+print(priceData)
 
 dataY = []
 
@@ -26,82 +29,128 @@ for i in range(len(priceData)):
     else:
         dataY.append(0)
 
-print(len(dataY))
-
-for i in range(len(dataY)):
-    print(dataY[i])
-
-priceData = np.array(priceData)
-
-priceData =  priceData.reshape(-1, 1)
-print(priceData)
-
-scaler_price = MinMaxScaler(feature_range=(0, 1))
-
-priceData = scaler_price.fit_transform(priceData)
-
-priceData = priceData.reshape(-1, 6)
-
-for i in range(len(priceData)):
-    print(priceData[i])
-
-volumeData = read_csv(input_file, index_col=None, header=0, delimiter=';', usecols=[9])
-print(volumeData)
-volumeData = volumeData.values
-
-scaler_volume = MinMaxScaler(feature_range=(0, 1))
-
-volumeData = scaler_volume.fit_transform(volumeData)
-
-print(len(volumeData))
-
+print('dataY', dataY)
 
 dataX = []
+scaler_price = MinMaxScaler(feature_range=(0, 1))
 
 for i in range(len(priceData)):
-    # print(priceData[i])
-    dataX.append([priceData[i][1], priceData[i][4], priceData[i][5], volumeData[i][0]])
-
-for i in range(len(dataX)):
-    print(dataX[i])
-
-print(len(dataX))
+    x = [priceData[i][1] , priceData[i][2] , priceData[i][3] , priceData[i][4]]
+    print(x)
+    x = np.array(x)
+    x = x.reshape(-1, 1)
+    x = scaler_price.fit_transform(x)
+    x = x.reshape(-1, 4)
+    print(x)
+    dataX.append(x)
 
 dataX = np.array(dataX)
 dataY = np.array(dataY)
+print('dataX', dataX)
 
+dataX = dataX.reshape(-1, 1)
+dataX = dataX.reshape(-1, 4)
+
+print('dataX', dataX)
+
+print('len dataX', len(dataX))
+print('len dataY', len(dataY))
+
+dataX = dataX[0:len(dataX)-1]
+dataY = dataY[-(len(dataY)-1):]
+print('dataX', dataX)
+print('dataY', dataY)
+
+
+# priceData = priceData.reshape(-1, 6)
+
+# for i in range(len(priceData)):
+#     print(priceData[i])
+
+# volumeData = read_csv(input_file, index_col=None, header=0, delimiter=';', usecols=[9])
+# print(volumeData)
+# volumeData = volumeData.values
+
+# scaler_volume = MinMaxScaler(feature_range=(0, 1))
+
+# volumeData = scaler_volume.fit_transform(volumeData)
+
+# print(len(volumeData))
+
+
+# dataX = []
+
+# for i in range(len(priceData)):
+#     # print(priceData[i])
+#     dataX.append([priceData[i][1], priceData[i][4], priceData[i][5], volumeData[i][0]])
+
+# for i in range(len(dataX)):
+#     print(dataX[i])
+
+# print(len(dataX))
+
+# dataX = np.array(dataX)
+# dataY = np.array(dataY)
+
+
+# model = Sequential()
+# model.add(Dense(50, input_dim=4, activation='relu'))
+# model.add(Dense(50, activation='relu'))
+# model.add(Dense(1, activation='sigmoid'))
+# model.compile(loss='binary_crossentropy', optimizer='Nadam', metrics=['accuracy'])
+# model.fit(dataX, dataY, epochs=64, verbose=1)
 
 model = Sequential()
-model.add(Dense(25, input_dim=4, activation='relu'))
-model.add(Dense(25, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='adam')
-model.fit(dataX, dataY, epochs=64, verbose=1)
-# # new instances where we do not know the answer
+model.add(Dense(10, activation='relu',input_shape=(4,)))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(units=1,activation='tanh'))
+model.compile(loss='binary_crossentropy', optimizer='Nadam', metrics=['accuracy'])
 
-ynew = model.predict_classes(dataX[0:730])
+history = model.fit(dataX, dataY, validation_split=0.33, epochs=150, verbose=1)
+# list all data in history
+print(history.history.keys())
+# summarize history for accuracy
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+# summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+# # # new instances where we do not know the answer
+
+# ynew = model.predict_classes(dataX[0:730])
 
 
-for i in range(0,730):
-    print("X=%s, Predicted=%s, arrY=%s" % (dataX[i], ynew[i], dataY[i]))
+# for i in range(0,730):
+#     print("X=%s, Predicted=%s, arrY=%s" % (dataX[i], ynew[i], dataY[i]))
 
 
 
-def predict_action(entryPrice, highPred, lowPred, vol):
-    arrX = []
-    entryPrice = scaler_price.transform([[entryPrice]])
-    highPred = scaler_price.transform([[highPred]])
-    lowPred = scaler_price.transform([[lowPred]])
-    vol = scaler_volume.transform([[vol]])
-    arrX.append([entryPrice[0][0], highPred[0][0], lowPred[0][0], vol[0][0]])
-    print('arrX', arrX)
-    arrX = np.array(arrX)
-    print('arrX', arrX)
-    action = model.predict_classes(arrX)
-    return action
+# def predict_action(entryPrice, highPred, lowPred, vol):
+#     arrX = []
+#     entryPrice = scaler_price.transform([[entryPrice]])
+#     highPred = scaler_price.transform([[highPred]])
+#     lowPred = scaler_price.transform([[lowPred]])
+#     vol = scaler_volume.transform([[vol]])
+#     arrX.append([entryPrice[0][0], highPred[0][0], lowPred[0][0], vol[0][0]])
+#     print('arrX', arrX)
+#     arrX = np.array(arrX)
+#     print('arrX', arrX)
+#     action = model.predict_classes(arrX)
+#     return action
 
 
-print(predict_action(981.78, 797.489990, 668.530029, 11661.46))
+# print(predict_action(981.78, 797.489990, 668.530029, 11661.46))
 
 
 
